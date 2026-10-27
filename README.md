@@ -6,8 +6,11 @@ Profesor: Yventz Entzana Garduño
 Proyecto: GeoTrack Firestore
 
 Integrantes del Equipo:
+
 Embríz Torres Natali Elena
+
 Medel Cortes Logan Yarom
+
 Ordoñez Gomez Leonardo
 
 GeoTrack Firestore - Sistema de Monitoreo e Inventario Last-Mile
