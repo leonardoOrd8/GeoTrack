@@ -1,22 +1,22 @@
 Instituto Politécnico Nacional
 
-Unidad Profesional Interdisciplinaria de Ingeniería y Ciencias Sociales y Administrativas (UPIICSA)
-Materia: Bases de Datos No SQL
+-Unidad Profesional Interdisciplinaria de Ingeniería y Ciencias Sociales y Administrativas (UPIICSA)
+-Materia: Bases de Datos No SQL
 
-Secuencia: 6CM68
+-Secuencia: 6CM68
 
-Profesor: Yventz Entzana Garduño
+-Profesor: Yventz Entzana Garduño
 
-Proyecto: GeoTrack Firestore
+-Proyecto: GeoTrack Firestore
 
 
-Integrantes del Equipo:
+-Integrantes del Equipo:
 
-Embríz Torres Natali Elena
+-Embríz Torres Natali Elena
 
-Medel Cortes Logan Yarom
+-Medel Cortes Logan Yarom
 
-Ordoñez Gomez Leonardo
+-Ordoñez Gomez Leonardo
 
 GeoTrack Firestore - Sistema de Monitoreo e Inventario Last-Mile
 1. Descripción General
