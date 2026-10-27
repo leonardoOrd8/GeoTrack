@@ -1,9 +1,14 @@
 Instituto Politécnico Nacional
+
 Unidad Profesional Interdisciplinaria de Ingeniería y Ciencias Sociales y Administrativas (UPIICSA)
 Materia: Bases de Datos No SQL
+
 Secuencia: 6CM68
+
 Profesor: Yventz Entzana Garduño
+
 Proyecto: GeoTrack Firestore
+
 
 Integrantes del Equipo:
 
