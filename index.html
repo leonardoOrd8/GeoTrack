@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoTrack Firestore | Sistema de Monitoreo Last-Mile</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">
+      <span> GeoTrack</span> <small>Firestore Cloud</small>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#registro">Registrar Paquete</a></li>
+      <li><a href="#dashboard">Dashboard en Vivo</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero">
+    <h1>Plataforma de Monitoreo Last-Mile</h1>
+    <p>UPIICSA - NoSQL Cloud Project (Firebase Cloud Firestore)</p>
+  </header>
+
+  <div class="main-container">
+    
+    <!-- Sección de Formulario -->
+    <section id="registro" class="card-section">
+      <h2><i class="fas fa-box"></i> Registrar Nuevo Envío</h2>
+      <form id="package-form">
+        <div class="form-group">
+          <label for="trackingCode">Código de Rastreo</label>
+          <input type="text" id="trackingCode" placeholder="Ej. GT-2026-001" required>
+        </div>
+
+        <div class="form-group">
+          <label for="recipient">Destinatario</label>
+          <input type="text" id="recipient" placeholder="Nombre completo del cliente" required>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Dirección de Entrega</label>
+          <input type="text" id="address" placeholder="Calle, Número, Colonia, C.P." required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="latitude">Latitud GPS</label>
+            <input type="number" step="any" id="latitude" placeholder="19.4326" required>
+          </div>
+          <div class="form-group">
+            <label for="longitude">Longitud GPS</label>
+            <input type="number" step="any" id="longitude" placeholder="-99.1332" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Estado Inicial</label>
+          <select id="status">
+            <option value="EN_ALMACEN">En Almacén</option>
+            <option value="EN_RUTA">En Ruta de Entrega</option>
+            <option value="ENTREGADO">Entregado</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary">Guardar en Firestore</button>
+      </form>
+    </section>
+
+
+    <section id="dashboard" class="card-section">
+      <h2><i class="fas fa-chart-line"></i> Dashboard de Envíos en Tiempo Real</h2>
+      
+     
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-number" id="total-packages">0</span>
+          <span class="stat-label">Total Paquetes</span>
+        </div>
+        <div class="stat-card warning">
+          <span class="stat-number" id="in-transit-packages">0</span>
+          <span class="stat-label">En Ruta</span>
+        </div>
+        <div class="stat-card success">
+          <span class="stat-number" id="delivered-packages">0</span>
+          <span class="stat-label">Entregados</span>
+        </div>
+      </div>
+
+      <!-- Lista dinámica de paquetes -->
+      <div class="table-container">
+        <h3>Lista de Paquetes</h3>
+        <div id="package-list" class="package-list">
+          <p class="loading-text">Conectando con Firebase Firestore...</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>GeoTrack Firestore &copy; 2026 - IPN / UPIICSA</p>
+  </footer>
+
+  <!-- Archivo JavaScript Modular de Firebase -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
