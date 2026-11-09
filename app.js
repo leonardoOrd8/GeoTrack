@@ -9,7 +9,7 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// ⚠️ REEMPLAZA ESTE OBJETO CON LAS CLAVES QUE COPIASTE DE TU CONSOLA DE FIREBASE
+//  REEMPLAZA ESTE OBJETO CON LAS CLAVES QUE COPIASTE DE TU CONSOLA DE FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCDmPXx-zLkUhOVEbRWjeND45Lu7AL_HoM",
   authDomain: "geotrack-firestore.firebaseapp.com",
@@ -58,11 +58,11 @@ if (packageForm) {
         ]
       });
 
-      alert("✅ ¡Paquete registrado exitosamente en Firestore!");
+      alert("¡Paquete registrado exitosamente en Firestore!");
       packageForm.reset();
     } catch (error) {
       console.error("Error guardando documento:", error);
-      alert("❌ Error al guardar en Firebase Firestore");
+      alert(" Error al guardar en Firebase Firestore");
     }
   });
 }
@@ -96,7 +96,7 @@ onSnapshot(collection(db, "paquetes"), (snapshot) => {
     item.className = 'package-item';
     item.innerHTML = `
       <div class="package-info">
-        <h4>📦 ${data.codigo_rastreo}</h4>
+        <h4> ${data.codigo_rastreo}</h4>
         <p><strong>Destinatario:</strong> ${data.destinatario}</p>
         <p><strong>Dirección:</strong> ${data.direccion}</p>
         <p><small>GPS: ${data.ubicacion_destino ? `${data.ubicacion_destino.latitude},${data.ubicacion_destino.longitude}` : 'No disponible'}</small></p>
