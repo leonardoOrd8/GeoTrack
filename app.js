@@ -1,4 +1,4 @@
-// Importar funciones necesarias desde los servidores CDN de Firebase (versión 10.8.0)
+// Importar funciones necesarias desde los servidores CDN de Firebase 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getFirestore, 
@@ -9,7 +9,7 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-//  REEMPLAZA ESTE OBJETO CON LAS CLAVES QUE COPIASTE DE TU CONSOLA DE FIREBASE
+
 const firebaseConfig = {
   apiKey: "AIzaSyCDmPXx-zLkUhOVEbRWjeND45Lu7AL_HoM",
   authDomain: "geotrack-firestore.firebaseapp.com",
@@ -31,7 +31,7 @@ const totalPackagesEl = document.getElementById('total-packages');
 const inTransitPackagesEl = document.getElementById('in-transit-packages');
 const deliveredPackagesEl = document.getElementById('delivered-packages');
 
-// 1. ESCUCHAR EL FORMULARIO Y GUARDAR EN FIRESTORE
+
 if (packageForm) {
   packageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -45,13 +45,13 @@ if (packageForm) {
     const status = document.getElementById('status').value;
 
     try {
-      // Crear un documento en la colección 'paquetes' de Firestore[cite: 5]
+      
       await addDoc(collection(db, "paquetes"), {
         codigo_rastreo: code,
         destinatario: recipient,
         direccion: address,
         estado: status,
-        ubicacion_destino: new GeoPoint(lat, lng), // Tipo nativo GeoPoint para mapas/GPS[cite: 5]
+        ubicacion_destino: new GeoPoint(lat, lng),
         fecha_creacion: serverTimestamp(),
         historial: [
           { estado: status, fecha: new Date().toISOString() }
@@ -67,7 +67,7 @@ if (packageForm) {
   });
 }
 
-// 2. ESCUCHAR CAMBIOS EN TIEMPO REAL (onSnapshot)
+
 // Cada vez que se agregue o cambie un paquete en la nube, se actualizará la pantalla automáticamente
 onSnapshot(collection(db, "paquetes"), (snapshot) => {
   if (!packageList) return;
