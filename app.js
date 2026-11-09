@@ -1,4 +1,4 @@
-/// Importar funciones de Firebase (incluyendo deleteDoc y doc)
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getFirestore, 
@@ -11,7 +11,7 @@ import {
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// ⚠️ MANTÉN TUS CLAVES REALES DE FIREBASE AQUÍ
+
 const firebaseConfig = {
   apiKey: "AIzaSyCDmPXx-zLkUhOVEbRWjeND45Lu7AL_HoM",
   authDomain: "geotrack-firestore.firebaseapp.com",
@@ -58,7 +58,7 @@ window.focusOnMap = function(lat, lng, docId) {
 // Función global para eliminar paquetes de Firestore
 window.deletePackage = async function(event, docId) {
   event.stopPropagation(); // Evita enfocar el mapa al hacer clic en borrar
-  if (confirm("⚠️ ¿Estás seguro de que deseas eliminar este paquete?")) {
+  if (confirm(" ¿Estás seguro de que deseas eliminar este paquete?")) {
     try {
       await deleteDoc(doc(db, "paquetes", docId));
       alert("🗑️ Paquete eliminado correctamente.");
@@ -120,11 +120,11 @@ if (packageForm) {
         ]
       });
 
-      alert("✅ ¡Paquete registrado exitosamente en Firestore!");
+      alert("¡Paquete registrado exitosamente en Firestore!");
       packageForm.reset();
     } catch (error) {
       console.error("Error guardando documento:", error);
-      alert("❌ Error al guardar en Firebase Firestore");
+      alert("Error al guardar en Firebase Firestore");
     } finally {
       submitBtn.textContent = "Registrar Paquete";
       submitBtn.disabled = false;
@@ -194,7 +194,7 @@ function renderizarPantalla(snapshot) {
       const marker = L.marker([lat, lng]);
       marker.bindPopup(`
         <div style="font-family: sans-serif;">
-          <strong style="color: #0284c7;">📦 ${data.codigo_rastreo || 'Sin código'}</strong><br>
+          <strong style="color: #0284c7;"> ${data.codigo_rastreo || 'Sin código'}</strong><br>
           <b>Destinatario:</b> ${data.destinatario || 'N/A'}<br>
           <b>Dirección:</b> ${data.direccion || 'N/A'}<br>
           <b>Estado:</b> <span style="font-weight:bold;">${estado.replace('_', ' ')}</span>
@@ -235,7 +235,7 @@ function renderizarPantalla(snapshot) {
         <h4>📦 ${data.codigo_rastreo || 'Sin código'}</h4>
         <p><strong>Destinatario:</strong> ${data.destinatario || 'N/A'}</p>
         <p><strong>Dirección:</strong> ${data.direccion || 'N/A'}</p>
-        <p><small>📍 GPS: ${hasLocation ? `${data.ubicacion_destino.latitude.toFixed(4)}, ${data.ubicacion_destino.longitude.toFixed(4)}` : 'No disponible'}</small></p>
+        <p><small> GPS: ${hasLocation ? `${data.ubicacion_destino.latitude.toFixed(4)}, ${data.ubicacion_destino.longitude.toFixed(4)}` : 'No disponible'}</small></p>
         
         <div class="timeline-container">
           <strong>📋 Historial de ruta:</strong>
@@ -276,7 +276,7 @@ document.addEventListener('change', (e) => {
 // 5. SIMULACIÓN DE MOVIMIENTO DE REPARTIDOR (LOCAL)
 // ==========================================
 window.iniciarSimulacionRepartidor = function() {
-  console.log("🚀 Iniciando simulación de repartidor...");
+  console.log(" Iniciando simulación de repartidor...");
 
   // Coordenadas cerca de UPIICSA
   const rutaSimulada = [
@@ -312,7 +312,7 @@ window.iniciarSimulacionRepartidor = function() {
       indiceRuta++;
     } else {
       clearInterval(intervaloMovimiento);
-      markerRepartidor.bindPopup("<b>✅ ¡Entrega Completada con Éxito!</b>").openPopup();
+      markerRepartidor.bindPopup("<b> ¡Entrega Completada con Éxito!</b>").openPopup();
     }
   }, 2500);
 };
