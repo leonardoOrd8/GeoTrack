@@ -61,10 +61,10 @@ window.deletePackage = async function(event, docId) {
   if (confirm(" ¿Estás seguro de que deseas eliminar este paquete?")) {
     try {
       await deleteDoc(doc(db, "paquetes", docId));
-      alert("🗑️ Paquete eliminado correctamente.");
+      alert(" Paquete eliminado correctamente.");
     } catch (error) {
       console.error("Error al eliminar el paquete:", error);
-      alert("❌ No se pudo eliminar el paquete.");
+      alert(" No se pudo eliminar el paquete.");
     }
   }
 };
@@ -232,20 +232,20 @@ function renderizarPantalla(snapshot) {
 
     item.innerHTML = `
       <div class="package-info" style="flex: 1;">
-        <h4>📦 ${data.codigo_rastreo || 'Sin código'}</h4>
+        <h4> ${data.codigo_rastreo || 'Sin código'}</h4>
         <p><strong>Destinatario:</strong> ${data.destinatario || 'N/A'}</p>
         <p><strong>Dirección:</strong> ${data.direccion || 'N/A'}</p>
         <p><small> GPS: ${hasLocation ? `${data.ubicacion_destino.latitude.toFixed(4)}, ${data.ubicacion_destino.longitude.toFixed(4)}` : 'No disponible'}</small></p>
         
         <div class="timeline-container">
-          <strong>📋 Historial de ruta:</strong>
+          <strong> Historial de ruta:</strong>
           ${historialHtml || '<p><small>Sin registros previos</small></p>'}
         </div>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-left: 15px;">
         <span class="badge ${estado}">${estado.replace('_', ' ')}</span>
         <button class="btn-delete" onclick="deletePackage(event, '${docId}')" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-          🗑️ Eliminar
+           Eliminar
         </button>
       </div>
     `;
@@ -298,7 +298,7 @@ window.iniciarSimulacionRepartidor = function() {
 
   markerRepartidor.bindPopup(`
     <div style="font-family: sans-serif;">
-      <strong style="color: #f59e0b;">🛵 Repartidor en Ruta</strong><br>
+      <strong style="color: #f59e0b;"> Repartidor en Ruta</strong><br>
       <b>Unidad:</b> Moto-01<br>
       <b>Estado:</b> En movimiento simulado
     </div>
