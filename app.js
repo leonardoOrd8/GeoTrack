@@ -1,17 +1,19 @@
-
+//  funciones de Firebase ( deleteDoc, doc, updateDoc y arrayUnion)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getFirestore, 
   collection, 
   addDoc, 
   deleteDoc,
+  updateDoc,
   doc,
   onSnapshot, 
   GeoPoint, 
-  serverTimestamp 
+  serverTimestamp,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-
+//   CLAVES REALES DE FIREBASE AQUÍ
 const firebaseConfig = {
   apiKey: "AIzaSyCDmPXx-zLkUhOVEbRWjeND45Lu7AL_HoM",
   authDomain: "geotrack-firestore.firebaseapp.com",
@@ -22,23 +24,21 @@ const firebaseConfig = {
   measurementId: "G-280K25XEVC"
 };
 
-// Inicializar la conexión con Firebase y Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Referencias a los elementos del HTML
 const packageForm = document.getElementById('package-form');
 const packageList = document.getElementById('package-list');
 const totalPackagesEl = document.getElementById('total-packages');
 const inTransitPackagesEl = document.getElementById('in-transit-packages');
 const deliveredPackagesEl = document.getElementById('delivered-packages');
 
-// Objeto global para almacenar los marcadores del mapa
 const markersMap = {};
+const packagesCache = {}; // Guarda los datos de cada paquete por docId
 
-// ==========================================
-// 1. INICIALIZAR EL MAPA DE LEAFLET
-// ==========================================
+
+// MAPA DE LEAFLET
+
 const map = L.map('map').setView([19.4326, -99.1332], 11);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -47,7 +47,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const markersGroup = L.layerGroup().addTo(map);
 
-// Función global para centrar el mapa al hacer clic en una tarjeta
 window.focusOnMap = function(lat, lng, docId) {
   map.flyTo([lat, lng], 15, { duration: 1.2 });
   if (markersMap[docId]) {
@@ -55,9 +54,8 @@ window.focusOnMap = function(lat, lng, docId) {
   }
 };
 
-// Función global para eliminar paquetes de Firestore
 window.deletePackage = async function(event, docId) {
-  event.stopPropagation(); // Evita enfocar el mapa al hacer clic en borrar
+  event.stopPropagation();
   if (confirm(" ¿Estás seguro de que deseas eliminar este paquete?")) {
     try {
       await deleteDoc(doc(db, "paquetes", docId));
@@ -69,7 +67,6 @@ window.deletePackage = async function(event, docId) {
   }
 };
 
-// Función auxiliar para obtener coordenadas desde la dirección escrita (OpenStreetMap)
 async function geocodeAddress(address) {
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
@@ -84,13 +81,12 @@ async function geocodeAddress(address) {
   } catch (error) {
     console.warn("No se pudo geocodificar la dirección automáticamente:", error);
   }
-  // Coordenadas por defecto (CDMX) en caso de no encontrar la dirección
   return { lat: 19.4326, lng: -99.1332 };
 }
 
-// ==========================================
-// 2. ESCUCHAR EL FORMULARIO Y GUARDAR EN FIRESTORE
-// ==========================================
+
+//  FORMULARIO Y GUARDAR EN FIRESTORE
+
 if (packageForm) {
   packageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -104,7 +100,6 @@ if (packageForm) {
     submitBtn.textContent = "Buscando ubicación...";
     submitBtn.disabled = true;
 
-    // Obtener las coordenadas automáticamente a partir del texto de la dirección
     const coords = await geocodeAddress(address);
 
     try {
@@ -120,11 +115,11 @@ if (packageForm) {
         ]
       });
 
-      alert("¡Paquete registrado exitosamente en Firestore!");
+      alert(" ¡Paquete registrado exitosamente en Firestore!");
       packageForm.reset();
     } catch (error) {
       console.error("Error guardando documento:", error);
-      alert("Error al guardar en Firebase Firestore");
+      alert(" Error al guardar en Firebase Firestore");
     } finally {
       submitBtn.textContent = "Registrar Paquete";
       submitBtn.disabled = false;
@@ -132,18 +127,16 @@ if (packageForm) {
   });
 }
 
-// Variable global para almacenar temporalmente los datos en memoria
 let ultimoSnapshotGlobal = null;
 
-// ==========================================
-// 3. ESCUCHAR CAMBIOS EN TIEMPO REAL (onSnapshot)
-// ==========================================
+
+//  CAMBIOS EN TIEMPO REAL (onSnapshot)
+
 onSnapshot(collection(db, "paquetes"), (snapshot) => {
-  ultimoSnapshotGlobal = snapshot; // Guardamos el snapshot en memoria
+  ultimoSnapshotGlobal = snapshot;
   renderizarPantalla(snapshot);
 });
 
-// Función centralizada para renderizar tarjetas y marcadores según filtros
 function renderizarPantalla(snapshot) {
   if (!packageList) return;
 
@@ -152,8 +145,8 @@ function renderizarPantalla(snapshot) {
 
   packageList.innerHTML = "";
   markersGroup.clearLayers(); 
-  
   Object.keys(markersMap).forEach(key => delete markersMap[key]);
+  Object.keys(packagesCache).forEach(key => delete packagesCache[key]);
 
   let total = snapshot.size;
   let enRuta = 0;
@@ -167,15 +160,16 @@ function renderizarPantalla(snapshot) {
     return;
   }
 
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    const docId = doc.id;
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const docId = docSnap.id;
     const estado = data.estado || 'EN_ALMACEN';
+
+    packagesCache[docId] = { id: docId, ...data };
 
     if (estado === 'EN_RUTA') enRuta++;
     if (estado === 'ENTREGADO') entregados++;
 
-    // Aplicar Filtros
     const codigo = (data.codigo_rastreo || '').toLowerCase();
     const destinatario = (data.destinatario || '').toLowerCase();
     const matchesSearch = codigo.includes(searchText) || destinatario.includes(searchText);
@@ -244,9 +238,14 @@ function renderizarPantalla(snapshot) {
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-left: 15px;">
         <span class="badge ${estado}">${estado.replace('_', ' ')}</span>
-        <button class="btn-delete" onclick="deletePackage(event, '${docId}')" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-           Eliminar
-        </button>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" onclick="window.simularPaqueteExistente(event, '${docId}')" style="background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">
+             Simular
+          </button>
+          <button type="button" class="btn-delete" onclick="deletePackage(event, '${docId}')" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+             Eliminar
+          </button>
+        </div>
       </div>
     `;
     packageList.appendChild(item);
@@ -257,9 +256,9 @@ function renderizarPantalla(snapshot) {
   if (deliveredPackagesEl) deliveredPackagesEl.textContent = entregados;
 }
 
-// ==========================================
-// 4. DISPARAR FILTROS EN TIEMPO REAL DESDE EL DOM
-// ==========================================
+
+// DISPARAR FILTROS EN TIEMPO REAL DESDE EL DOM
+
 document.addEventListener('input', (e) => {
   if (e.target.id === 'searchInput' && ultimoSnapshotGlobal) {
     renderizarPantalla(ultimoSnapshotGlobal);
@@ -272,47 +271,162 @@ document.addEventListener('change', (e) => {
   }
 });
 
-// ==========================================
-// 5. SIMULACIÓN DE MOVIMIENTO DE REPARTIDOR (LOCAL)
-// ==========================================
-window.iniciarSimulacionRepartidor = function() {
-  console.log(" Iniciando simulación de repartidor...");
 
-  // Coordenadas cerca de UPIICSA
-  const rutaSimulada = [
-    [19.3950, -99.0900],
-    [19.3958, -99.0912],
-    [19.3965, -99.0925],
-    [19.3972, -99.0938],
-    [19.3980, -99.0950]
-  ];
+// 5. SIMULACIÓN HACIA UBICACIÓN REAL 
 
-  let indiceRuta = 0;
+let marcadorRepartidorActivo = null;
+let lineaRutaActiva = null;
+let intervaloSimulacionActivo = null;
 
-  // Centrar el mapa en la posición inicial
-  map.setView(rutaSimulada[0], 15);
+// Genera una ruta interpolada desde un punto cercano (~1.2 km) hasta el destino exacto
+function generarRutaHaciaDestino(destLat, destLng, pasos = 6) {
+  // Punto de partida cercano (desplazamiento aproximado)
+  const startLat = destLat - 0.008;
+  const startLng = destLng - 0.008;
 
-  const markerRepartidor = L.marker(rutaSimulada[0], {
-    title: "Repartidor GPS"
+  const puntos = [];
+  for (let i = 0; i <= pasos; i++) {
+    const t = i / pasos;
+    // Ligera curvatura para que no sea una línea recta plana
+    const curva = Math.sin(t * Math.PI) * 0.0012;
+    const lat = startLat + (destLat - startLat) * t + curva;
+    const lng = startLng + (destLng - startLng) * t - curva * 0.5;
+    puntos.push([lat, lng]);
+  }
+  // Asegurar que el último punto sea exactamente la ubicación destino
+  puntos[puntos.length - 1] = [destLat, destLng];
+  return puntos;
+}
+
+async function actualizarEstadoEnFirestore(docId, nuevoEstado) {
+  if (!docId) return;
+  try {
+    const paqueteActual = packagesCache[docId];
+    // Evita duplicar el mismo estado consecutivo si ya está en ese estado
+    if (paqueteActual && paqueteActual.estado === nuevoEstado) return;
+
+    await updateDoc(doc(db, "paquetes", docId), {
+      estado: nuevoEstado,
+      historial: arrayUnion({
+        estado: nuevoEstado,
+        fecha: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.error(`Error al actualizar estado a ${nuevoEstado}:`, error);
+  }
+}
+
+async function ejecutarAnimacionHaciaDestino(destLat, destLng, etiqueta, docId = null) {
+  if (intervaloSimulacionActivo) {
+    clearInterval(intervaloSimulacionActivo);
+  }
+  if (marcadorRepartidorActivo) {
+    map.removeLayer(marcadorRepartidorActivo);
+  }
+  if (lineaRutaActiva) {
+    map.removeLayer(lineaRutaActiva);
+  }
+
+  const ruta = generarRutaHaciaDestino(destLat, destLng, 5);
+  let paso = 0;
+
+  map.setView(ruta[0], 15);
+
+  lineaRutaActiva = L.polyline(ruta, {
+    color: '#f59e0b',
+    weight: 3,
+    dashArray: '6, 6'
   }).addTo(map);
 
-  markerRepartidor.bindPopup(`
+  marcadorRepartidorActivo = L.marker(ruta[0], { title: "Repartidor GPS" }).addTo(map);
+  marcadorRepartidorActivo.bindPopup(`
     <div style="font-family: sans-serif;">
       <strong style="color: #f59e0b;"> Repartidor en Ruta</strong><br>
-      <b>Unidad:</b> Moto-01<br>
-      <b>Estado:</b> En movimiento simulado
+      <b>Destino:</b> ${etiqueta}<br>
+      <b>Estado:</b> EN RUTA
     </div>
   `).openPopup();
 
-  const intervaloMovimiento = setInterval(() => {
-    if (indiceRuta < rutaSimulada.length) {
-      const siguientePunto = rutaSimulada[indiceRuta];
-      markerRepartidor.setLatLng(siguientePunto);
-      map.panTo(siguientePunto);
-      indiceRuta++;
-    } else {
-      clearInterval(intervaloMovimiento);
-      markerRepartidor.bindPopup("<b> ¡Entrega Completada con Éxito!</b>").openPopup();
+  // Al iniciar la simulación de un paquete registrado, pasa a EN_RUTA
+  if (docId) {
+    await actualizarEstadoEnFirestore(docId, "EN_RUTA");
+  }
+
+  intervaloSimulacionActivo = setInterval(async () => {
+    paso++;
+    if (paso < ruta.length) {
+      const coordActual = ruta[paso];
+      marcadorRepartidorActivo.setLatLng(coordActual);
+      map.panTo(coordActual);
+
+      if (paso === ruta.length - 1) {
+        clearInterval(intervaloSimulacionActivo);
+        marcadorRepartidorActivo.bindPopup(`
+          <div style="font-family: sans-serif;">
+            <strong style="color: #10b981;"> ¡Entrega Completada!</strong><br>
+            <b>Destino:</b> ${etiqueta}<br>
+            <b>Estado:</b> ENTREGADO
+          </div>
+        `).openPopup();
+
+        if (docId) {
+          await actualizarEstadoEnFirestore(docId, "ENTREGADO");
+        }
+      }
     }
-  }, 2500);
+  }, 1800);
+}
+
+// Botón " Simular" del formulario
+window.iniciarSimulacionRepartidor = async function() {
+  const addressInput = document.getElementById('address');
+  const codeInput = document.getElementById('trackingCode');
+  const direccionTexto = addressInput ? addressInput.value.trim() : '';
+  const codigoTexto = codeInput && codeInput.value.trim() ? codeInput.value.trim() : 'Nuevo Envío';
+
+  if (!direccionTexto) {
+    alert(" Escribe primero una Dirección en el formulario para calcular la ruta hacia ese lugar.");
+    if (addressInput) addressInput.focus();
+    return;
+  }
+
+  const coords = await geocodeAddress(direccionTexto);
+  await ejecutarAnimacionHaciaDestino(
+    coords.lat,
+    coords.lng,
+    `${codigoTexto} (${direccionTexto})`,
+    null
+  );
+};
+
+// Botón " Simular" en cada paquete ya registrado
+window.simularPaqueteExistente = async function(event, docId) {
+  event.stopPropagation();
+  const paquete = packagesCache[docId];
+  if (!paquete) return;
+
+  let lat, lng;
+  if (
+    paquete.ubicacion_destino &&
+    typeof paquete.ubicacion_destino.latitude === 'number' &&
+    typeof paquete.ubicacion_destino.longitude === 'number'
+  ) {
+    lat = paquete.ubicacion_destino.latitude;
+    lng = paquete.ubicacion_destino.longitude;
+  } else if (paquete.direccion) {
+    const coords = await geocodeAddress(paquete.direccion);
+    lat = coords.lat;
+    lng = coords.lng;
+  } else {
+    alert(" Este paquete no tiene coordenadas ni dirección válida.");
+    return;
+  }
+
+  await ejecutarAnimacionHaciaDestino(
+    lat,
+    lng,
+    `${paquete.codigo_rastreo || 'Paquete'} - ${paquete.direccion || ''}`,
+    docId
+  );
 };
