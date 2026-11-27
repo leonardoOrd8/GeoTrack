@@ -5,118 +5,195 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GeoTrack Firestore | Sistema de Monitoreo Last-Mile</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Google Fonts & FontAwesome Icons -->
-   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <!-- Navegación Superior -->
+  
+  <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+ 
   <nav class="navbar">
     <div class="logo">
-      <span> GeoTrack</span> <small>Firestore Cloud</small>
+      <span>GeoTrack</span> <small>Firestore Cloud</small>
     </div>
-    <ul class="nav-links">
+    <ul class="nav-links" id="admin-nav-links" style="display: none;">
       <li><a href="#registro">Registrar Paquete</a></li>
       <li><a href="#dashboard">Dashboard en Vivo</a></li>
     </ul>
   </nav>
 
   <header class="hero">
-    <h1>Plataforma de Monitoreo </h1>
-    <p>UPIICSA - NoSQL </p>
+    <h1>Plataforma de Monitoreo</h1>
+    <p>UPIICSA - NoSQL</p>
   </header>
 
-  <div class="main-container">
+  
+  <section id="login-section" class="card-section" style="max-width: 440px; margin: 24px auto;">
+    <h2><i class="fas fa-user-lock"></i> Iniciar Sesión</h2>
+    <p style="font-size: 0.9rem; color: #475569; margin-bottom: 14px;">
+      Ingresa con tu correo y contraseña para acceder al sistema:
+    </p>
+
+    <div class="form-group">
+      <label for="login-email">Correo electrónico</label>
+      <input type="email" id="login-email" placeholder="Ej. cliente@correo.com o admin@geotrack.com" required>
+    </div>
+
+    <div class="form-group">
+      <label for="login-password">Contraseña</label>
+      <input type="password" id="login-password" placeholder="••••••••" required>
+    </div>
+
+    <div class="form-group">
+      <label for="login-role">Rol de acceso</label>
+      <select id="login-role">
+        <option value="USUARIO">Usuario (Ver / Solicitar pedido)</option>
+        <option value="ADMIN">Administrador (Panel completo)</option>
+      </select>
+    </div>
+
+    <button type="button" id="btn-login" class="btn-submit" style="width: 100%; margin-top: 6px;">
+      Entrar
+    </button>
+    <p id="login-error" style="color: #dc2626; font-size: 0.85rem; margin-top: 10px;"></p>
+  </section>
+
+
+  <div class="main-container" id="app-workspace" style="display: none;">
+
     
-    <!-- Sección de Formulario -->
-    <section id="registro" class="card-section">
-      <h2><i class="fas fa-box"></i> Registrar Nuevo Envío</h2>
-      <form id="package-form">
-        <div class="form-group">
-          <label for="trackingCode">Código de Rastreo</label>
-          <input type="text" id="trackingCode" placeholder="Ej. GT-1001" required>
-        </div>
+    <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #f1f5f9; border-radius: 8px; margin-bottom: 10px;">
+      <span id="session-badge"><strong>Sesión:</strong> —</span>
+      <button type="button" id="btn-logout" style="background: #ef4444; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        Cerrar sesión
+      </button>
+    </div>
 
-        <div class="form-group">
-          <label for="recipient">Destinatario</label>
-          <input type="text" id="recipient" placeholder="Ej. Juan Pérez" required>
-        </div>
+    <!-- VISTA EXCLUSIVA DE USUARIO -->
+    <section id="user-view" class="card-section" style="display: none; grid-column: 1 / -1;">
+      
+      
+      <div id="user-create-order-box" style="display: none;">
+        <h2><i class="fas fa-cart-plus"></i> Realizar un Nuevo Pedido</h2>
+        <form id="user-order-form">
+          <div class="form-group">
+            <label for="user-recipient-name">Nombre Completo</label>
+            <input type="text" id="user-recipient-name" placeholder="Ej. Juan Pérez" required>
+          </div>
+          <div class="form-group">
+            <label for="user-address">Dirección de Entrega</label>
+            <input type="text" id="user-address" placeholder="Ej. Av. Té 950, Granjas México, CDMX" required>
+          </div>
+          <button type="submit" class="btn-submit" style="width: 100%; background: #10b981;">
+            <i class="fas fa-paper-plane"></i> Confirmar y Realizar Pedido
+          </button>
+        </form>
+      </div>
 
-        <div class="form-group">
-          <label for="address">Dirección</label>
-          <input type="text" id="address" placeholder="Ej. Av. Té 950, Granjas México, Iztacalco, CDMX" required>
-        </div>
-
-        <div class="form-group">
-          <label for="status">Estado Inicial</label>
-          <select id="status" required>
-            <option value="EN_ALMACEN">En Almacén</option>
-            <option value="EN_RUTA">En Ruta</option>
-            <option value="ENTREGADO">Entregado</option>
-          </select>
-        </div>
+      
+      <div id="user-order-status-box" style="display: none;">
+        <h2><i class="fas fa-box-open"></i> Mi Pedido</h2>
+        <div id="user-package-card" style="margin-bottom: 14px;"></div>
 
         
-        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
-          <button type="submit" class="btn-submit" style="flex: 1;">Registrar Paquete</button>
-          
-          <button type="button" id="btnSimular" onclick="window.iniciarSimulacionRepartidor()" style="background: #f59e0b; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; height: fit-content; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-     Simular
-  </button> 
-        </div>
-      </form>
+        <div id="user-status-history" style="margin-bottom: 16px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;"></div>
+
+        <button type="button" id="btn-ask-order" style="background: #f59e0b; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">
+          <i class="fas fa-route"></i> ¿Cómo va mi pedido?
+        </button>
+      </div>
     </section>
 
-    <!-- Sección de Dashboard / Monitoreo en Tiempo Real -->
-     <div id="map" style="height: 380px; width: 100%; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
-     <!-- Contenedor del Mapa y Botón de Simulación -->
-    <div style="display: flex; flex-direction: column; align-items: flex-start;">
-      <div id="map" style="height: 380px; width: 100%; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
-      
-     
-    </div>
-     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <section id="dashboard" class="card-section">
-      <h2><i class="fas fa-chart-line"></i> Dashboard de Envíos en Tiempo Real</h2>
-      
-      <!-- Métricas / Contadores rápidos -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-number" id="total-packages">0</span>
-          <span class="stat-label">Total Paquetes</span>
-        </div>
-        <div class="stat-card warning">
-          <span class="stat-number" id="in-transit-packages">0</span>
-          <span class="stat-label">En Ruta</span>
-        </div>
-        <div class="stat-card success">
-          <span class="stat-number" id="delivered-packages">0</span>
-          <span class="stat-label">Entregados</span>
-        </div>
-      </div>
+    <!-- CONTENIDO DE ADMINISTRADOR -->
+    <div id="admin-full-content" style="display: none; contents: inherit;">
+      <!-- Sección de Formulario -->
+      <section id="registro" class="card-section">
+        <h2><i class="fas fa-box"></i> Registrar Envío (Admin)</h2>
+        <form id="package-form">
+          <div class="form-group">
+            <label for="trackingCode">Código de Rastreo</label>
+            <input type="text" id="trackingCode" placeholder="Ej. GT-1001" required>
+          </div>
 
-      <!-- Lista dinámica de paquetes -->
-      <div class="table-container">
-        <h3>Lista de Paquetes</h3>
-        <!-- Barra de Búsqueda y Filtros -->
-<div class="filters-container" style="display: flex; gap: 10px; margin-bottom: 15px;">
-  <input type="text" id="searchInput" placeholder="🔍 Buscar por código o destinatario..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-  
-  <select id="statusFilter" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-    <option value="TODOS">Todos los estados</option>
-    <option value="EN_ALMACEN">En Almacén</option>
-    <option value="EN_RUTA">En Ruta</option>
-    <option value="ENTREGADO">Entregado</option>
-  </select>
-</div>
-        <div id="package-list" class="package-list">
-          <p class="loading-text">Conectando con Firebase Firestore...</p>
+          <div class="form-group">
+            <label for="recipient">Destinatario</label>
+            <input type="text" id="recipient" placeholder="Ej. Juan Pérez" required>
+          </div>
+
+          <div class="form-group">
+            <label for="clientEmail">Correo del Cliente</label>
+            <input type="email" id="clientEmail" placeholder="Ej. juan@correo.com">
+          </div>
+
+          <div class="form-group">
+            <label for="address">Dirección</label>
+            <input type="text" id="address" placeholder="Ej. Av. Té 950, Granjas México, Iztacalco, CDMX" required>
+          </div>
+
+          <div class="form-group">
+            <label for="status">Estado Inicial</label>
+            <select id="status" required>
+              <option value="EN_ALMACEN">En Almacén</option>
+              <option value="EN_RUTA">En Ruta</option>
+              <option value="ENTREGADO">Entregado</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+            <button type="submit" class="btn-submit" style="flex: 1;">Registrar Paquete</button>
+            <button type="button" id="btnSimular" onclick="window.iniciarSimulacionRepartidor()" style="background: #f59e0b; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; height: fit-content; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              Simular
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Dashboard Administrador -->
+      <section id="dashboard" class="card-section">
+        <h2><i class="fas fa-chart-line"></i> Dashboard de Envíos en Tiempo Real</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-number" id="total-packages">0</span>
+            <span class="stat-label">Total Paquetes</span>
+          </div>
+          <div class="stat-card warning">
+            <span class="stat-number" id="in-transit-packages">0</span>
+            <span class="stat-label">En Ruta</span>
+          </div>
+          <div class="stat-card success">
+            <span class="stat-number" id="delivered-packages">0</span>
+            <span class="stat-label">Entregados</span>
+          </div>
         </div>
-      </div>
+
+        <div class="table-container">
+          <h3>Lista de Paquetes</h3>
+          <div class="filters-container" style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="searchInput" placeholder=" Buscar por código o destinatario..." style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <select id="statusFilter" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="TODOS">Todos los estados</option>
+              <option value="EN_ALMACEN">En Almacén</option>
+              <option value="EN_RUTA">En Ruta</option>
+              <option value="ENTREGADO">Entregado</option>
+            </select>
+          </div>
+          <div id="package-list" class="package-list">
+            <p class="loading-text">Conectando con Firebase Firestore...</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- MAPA COMPARTIDO -->
+    <section id="map-section" class="card-section" style="grid-column: 1 / -1;">
+      <h2><i class="fas fa-map-marked-alt"></i> Mapa de Seguimiento</h2>
+      <div id="map" style="height: 380px; width: 100%; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
     </section>
 
   </div>
@@ -125,7 +202,6 @@
     <p>GeoTrack Firestore &copy; 2026 - IPN / UPIICSA</p>
   </footer>
 
-  <!-- Archivo JavaScript Modular de Firebase -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
