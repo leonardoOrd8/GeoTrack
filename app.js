@@ -13,7 +13,7 @@ import {
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-//   CLAVES REALES DE FIREBASE AQUÍ
+
 const firebaseConfig = {
   apiKey: "AIzaSyCDmPXx-zLkUhOVEbRWjeND45Lu7AL_HoM",
   authDomain: "geotrack-firestore.firebaseapp.com",
